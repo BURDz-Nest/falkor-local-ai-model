@@ -232,19 +232,21 @@ class FalkorRenderer:
 
     def render_help(self):
         """Render help menu."""
-        table = Table(title="🐉 Falkor Commands", border_style="cyan")
+        table = Table(title="Commands", border_style="cyan")
         table.add_column("Command", style="yellow", no_wrap=True)
         table.add_column("Description", style="white")
         
         table.add_row("/help", "Show this help menu")
-        table.add_row("/model", "List available models")
-        table.add_row("/model <name>", "Switch to a different model")
+        table.add_row("/model", "Interactive model selector (arrow keys)")
+        table.add_row("/menu", "Interactive command menu")
         table.add_row("/clear", "Clear the screen")
         table.add_row("/history", "Show conversation history")
         table.add_row("exit, quit, bye", "Exit Falkor")
         
         self.console.print()
         self.console.print(table)
+        self.console.print()
+        self.console.print("[dim]Tip: Use arrow keys in menus, Esc to cancel[/dim]")
         self.console.print()
 
     def clear_screen(self):

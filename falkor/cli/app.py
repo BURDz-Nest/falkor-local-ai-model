@@ -1,7 +1,9 @@
 """Main CLI application for Falkor."""
 
+import os
 from falkor.models.ollama_client import OllamaClient, OllamaConnectionError
 from falkor.cli.renderer import FalkorRenderer
+from falkor.cli.interactive import InteractiveMenu
 from falkor import __version__
 
 
@@ -19,7 +21,9 @@ class FalkorApp:
         self.max_history = max_history
         self.client = OllamaClient()
         self.renderer = FalkorRenderer()
+        self.menu = InteractiveMenu()
         self.conversation_history = []
+        self.current_dir = os.getcwd()
 
     def run(self):
         """Run the main CLI loop."""
@@ -43,8 +47,9 @@ class FalkorApp:
         # Main chat loop
         while True:
             try:
-                # Get user input with styled prompt
-                user_input = self.renderer.console.input(self.renderer.render_user_prompt()).strip()
+                # Get user input with enhanced prompt showing model + directory
+                prompt_text = self._get_prompt()
+                user_input = self.renderer.console.input(prompt_text).strip()
                 
                 if not user_input:
                     continue
@@ -58,9 +63,26 @@ class FalkorApp:
                     self.renderer.clear_screen()
                     continue
                 
-                if user_input.lower() == "/model":
-                    self._show_models(models)
+                if user_input.lower() == "/history":
+                    self._show_history()
                     continue
+                
+                if user_input.lower() == "/model":
+                    # Interactive model selector!
+                    selected = self.menu.select_model(models, self.model)
+                    if selected and selected != self.model:
+                        self._switch_model(selected, models)
+                    continue
+                
+                if user_input.lower() == "/menu":
+                    # Interactive command menu
+                    command = self.menu.show_command_menu()
+                    if command:
+                        # Simulate the command being entered
+                        user_input = command
+                        # Fall through to process it
+                    else:
+                        continue
                 
                 if user_input.lower().startswith("/model "):
                     new_model = user_input[7:].strip()
@@ -111,6 +133,29 @@ class FalkorApp:
         # Cleanup
         self.client.close()
 
+    def _get_prompt(self) -> str:
+        """Generate enhanced prompt with model and directory.
+        
+        Returns:
+            Formatted prompt string
+        """
+        # Update current directory (in case it changed)
+        self.current_dir = os.getcwd()
+        
+        # Shorten directory path for display
+        home = os.path.expanduser("~")
+        if self.current_dir.startswith(home):
+            display_dir = "~" + self.current_dir[len(home):]
+        else:
+            display_dir = self.current_dir
+        
+        # Limit directory length
+        if len(display_dir) > 40:
+            display_dir = "..." + display_dir[-37:]
+        
+        # Format: [model] (directory) You:
+        return f"\n[bold magenta][{self.model}][/bold magenta] [dim]({display_dir})[/dim]\n[bold cyan]You:[/bold cyan] "
+
     def _show_models(self, models: list):
         """Show available models.
         
@@ -153,6 +198,38 @@ class FalkorApp:
             f"Switched from {old_model} to {new_model}",
             title="Model Changed"
         )
+
+    def _show_history(self):
+        """Show conversation history."""
+        if not self.conversation_history:
+            self.renderer.print("\n[yellow]No conversation history yet.[/yellow]\n")
+            return
+        
+        from rich.panel import Panel
+        from rich.text import Text
+        
+        self.renderer.print("\n[bold cyan]Conversation History:[/bold cyan]\n")
+        
+        for i, msg in enumerate(self.conversation_history, 1):
+            role = msg["role"]
+            content = msg["content"]
+            
+            if role == "user":
+                style = "cyan"
+                prefix = "You"
+            else:
+                style = "green"
+                prefix = "Falkor"
+            
+            # Truncate long messages
+            if len(content) > 100:
+                content = content[:97] + "..."
+            
+            self.renderer.console.print(
+                f"[bold {style}]{i}. {prefix}:[/bold {style}] {content}"
+            )
+        
+        self.renderer.print(f"\n[dim]Total messages: {len(self.conversation_history)}[/dim]\n")
 
 
 def main():
