@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "falkor"
+version = "0.1.0"
+description = "Multi-agent RAG system with beautiful CLI - Your local knowledge assistant"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Falkor Team"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "rich>=13.7.0",              # Beautiful terminal UI
+    "prompt-toolkit>=3.0.43",    # Advanced CLI input
+    "httpx>=0.26.0",             # HTTP client for Ollama API
+    "pyyaml>=6.0.1",             # Configuration files
+    "pydantic>=2.5.0",           # Data validation
+]
+
+# Phase 2 dependencies (add later)
+# "chromadb>=0.4.22",          # Vector database
+# "sentence-transformers>=2.3.1",  # Embeddings
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "ipython>=8.18.0",
+]
+
+[project.scripts]
+falkor = "falkor.main:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]  # Line too long
+
+[tool.hatch.build.targets.wheel]
+packages = ["falkor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "falkor"]
