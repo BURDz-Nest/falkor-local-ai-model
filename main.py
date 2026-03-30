@@ -1,12 +1,6 @@
 """Main entry point for Falkor."""
 
-from falkor import __version__
-
-
-def main():
-    """Main entry point."""
-    print(f"🐉 Hello Falkor! v{__version__}")
-    print("Your local knowledge assistant is ready!")
+from falkor.cli.app import main
 
 
 if __name__ == "__main__":
