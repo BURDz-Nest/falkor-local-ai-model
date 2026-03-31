@@ -253,5 +253,33 @@ class FalkorRenderer:
         self.console.clear()
 
     def print(self, *args, **kwargs):
-        """Wrapper for console.print."""
+        """Wrapper around console.print."""
         self.console.print(*args, **kwargs)
+
+    def render_streaming_response(self, stream_iterator):
+        """Render streaming response with typewriter effect.
+        
+        Args:
+            stream_iterator: Iterator that yields content chunks
+            
+        Returns:
+            Full accumulated response text
+        """
+        # Print assistant prefix
+        self.console.print()
+        self.console.print("[bold green]Falkor:[/bold green] ", end="")
+        
+        # Accumulate full response
+        full_response = []
+        
+        # Display chunks as they arrive
+        for chunk in stream_iterator:
+            if chunk:
+                full_response.append(chunk)
+                # Print chunk immediately (typewriter effect!)
+                self.console.print(chunk, end="", markup=False)
+                
+        # Print newline at end
+        self.console.print()
+        
+        return "".join(full_response)

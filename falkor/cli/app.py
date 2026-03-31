@@ -86,18 +86,14 @@ class FalkorApp:
                     "content": user_input
                 })
                 
-                # Get response from Ollama with thinking indicator
-                self.renderer.render_assistant_prefix()
-                
-                response = self.client.chat(
+                # Get streaming response from Ollama
+                stream = self.client.chat_stream(
                     model=self.model,
                     messages=self.conversation_history
                 )
                 
-                assistant_message = response["message"]["content"]
-                
-                # Render as markdown
-                self.renderer.render_markdown(assistant_message)
+                # Render with typewriter effect!
+                assistant_message = self.renderer.render_streaming_response(stream)
                 
                 # Add response to history
                 self.conversation_history.append({
