@@ -150,13 +150,13 @@ Type `/model` to see:
 
 ## 🎯 Getting More Models
 
-### Popular Models
+### Quick Guide
 
 ```bash
 # Fast & lightweight (700MB)
 ollama pull qwen2.5:1.5b
 
-# General purpose (4.7GB)
+# General purpose (4.7GB) - RECOMMENDED
 ollama pull llama3.1:8b
 
 # Best for coding (19GB)
@@ -174,6 +174,8 @@ ollama pull mistral:7b
 1. Restart Falkor (type `exit` then `falkor`)
 2. Type `/model` to see your new model
 3. Use arrow keys to select it
+
+**For complete model guide, see [MODELS.md](MODELS.md)**
 
 ---
 
@@ -238,9 +240,14 @@ ollama pull qwen2.5:1.5b
 
 ## 📚 Documentation
 
-- **[Phase 1 Complete](PHASE1_COMPLETE.md)** - Development summary
-- **[Streaming](STREAMING.md)** - How streaming works
+### User Guides
+- **[Installation Guide](INSTALLATION.md)** - Complete installation walkthrough
+- **[Models Guide](MODELS.md)** - How to manage Ollama models
+- **[Uninstall Guide](UNINSTALL.md)** - How to remove Falkor
+
+### Developer Docs
 - **[Project Status](PROJECT_STATUS.md)** - Roadmap & features
+- **[Streaming](STREAMING.md)** - How streaming works
 - **[Testing Guide](TESTING_GUIDE.md)** - How to test
 
 ---
