@@ -1,11 +1,8 @@
 """Interactive menus for Falkor using prompt_toolkit."""
 
 from typing import List, Optional
-from prompt_toolkit import prompt
-from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.shortcuts import radiolist_dialog, button_dialog
+from prompt_toolkit.shortcuts import radiolist_dialog
 from rich.console import Console
-from rich.table import Table
 
 
 class InteractiveMenu:
@@ -38,49 +35,6 @@ class InteractiveMenu:
             text="Use arrow keys to navigate, Enter to select, Esc to cancel:",
             values=values,
             default=current_model
-        ).run()
-        
-        return result
-
-    def confirm(self, message: str, title: str = "Confirm") -> bool:
-        """Show yes/no confirmation dialog.
-        
-        Args:
-            message: Confirmation message
-            title: Dialog title
-            
-        Returns:
-            True if confirmed, False otherwise
-        """
-        result = button_dialog(
-            title=title,
-            text=message,
-            buttons=[
-                ('Yes', True),
-                ('No', False),
-            ],
-        ).run()
-        
-        return result if result is not None else False
-
-    def show_command_menu(self) -> Optional[str]:
-        """Show interactive command menu.
-        
-        Returns:
-            Selected command or None if cancelled
-        """
-        commands = [
-            ('/help', 'Show help menu'),
-            ('/model', 'Switch models'),
-            ('/clear', 'Clear screen'),
-            ('/history', 'Show conversation history'),
-            ('exit', 'Exit Falkor'),
-        ]
-        
-        result = radiolist_dialog(
-            title="Commands",
-            text="Select a command:",
-            values=commands
         ).run()
         
         return result

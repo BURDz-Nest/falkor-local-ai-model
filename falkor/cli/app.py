@@ -68,25 +68,10 @@ class FalkorApp:
                     continue
                 
                 if user_input.lower() == "/model":
-                    # Interactive model selector!
+                    # Interactive model selector dropdown!
                     selected = self.menu.select_model(models, self.model)
                     if selected and selected != self.model:
                         self._switch_model(selected, models)
-                    continue
-                
-                if user_input.lower() == "/menu":
-                    # Interactive command menu
-                    command = self.menu.show_command_menu()
-                    if command:
-                        # Simulate the command being entered
-                        user_input = command
-                        # Fall through to process it
-                    else:
-                        continue
-                
-                if user_input.lower().startswith("/model "):
-                    new_model = user_input[7:].strip()
-                    self._switch_model(new_model, models)
                     continue
                 
                 # Check for exit command
@@ -156,42 +141,13 @@ class FalkorApp:
         # Format: [model] (directory) You:
         return f"\n[bold magenta][{self.model}][/bold magenta] [dim]({display_dir})[/dim]\n[bold cyan]You:[/bold cyan] "
 
-    def _show_models(self, models: list):
-        """Show available models.
-        
-        Args:
-            models: List of model names
-        """
-        from rich.table import Table
-        
-        table = Table(title="📚 Available Models", border_style="cyan")
-        table.add_column("Model", style="yellow")
-        table.add_column("Status", style="white")
-        
-        for model in models:
-            status = "✅ Active" if model == self.model else ""
-            table.add_row(model, status)
-        
-        self.renderer.print()
-        self.renderer.print(table)
-        self.renderer.print()
-        self.renderer.print(f"[dim]Switch models with:[/dim] [yellow]/model <name>[/yellow]")
-        self.renderer.print()
-
     def _switch_model(self, new_model: str, models: list):
         """Switch to a different model.
         
         Args:
             new_model: Model name to switch to
-            models: List of available models
+            models: List of available models (not used, kept for compatibility)
         """
-        if new_model not in models:
-            self.renderer.render_error(
-                f"Model '{new_model}' not found.\n\nAvailable models: {', '.join(models)}",
-                title="Model Not Found"
-            )
-            return
-        
         old_model = self.model
         self.model = new_model
         self.renderer.render_success(
