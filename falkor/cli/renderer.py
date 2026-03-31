@@ -238,6 +238,7 @@ class FalkorRenderer:
         
         table.add_row("/help", "Show this help menu")
         table.add_row("/model", "Interactive model selector (arrow keys)")
+        table.add_row("/help-agent", "Ask Falkor Help Agent (knows Falkor/Ollama)")
         table.add_row("/history", "Show conversation history")
         table.add_row("/clear", "Clear the screen")
         table.add_row("exit, quit, bye", "Exit Falkor")
@@ -245,7 +246,8 @@ class FalkorRenderer:
         self.console.print()
         self.console.print(table)
         self.console.print()
-        self.console.print("[dim]Tip: Type /model then use arrow keys to switch models[/dim]")
+        self.console.print("[dim]💡 Tip: Help Agent auto-activates for Falkor/Ollama questions![/dim]")
+        self.console.print("[dim]   Ask 'how do I get more models?' and watch it help![/dim]")
         self.console.print()
 
     def clear_screen(self):

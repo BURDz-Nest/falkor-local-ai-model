@@ -4,6 +4,7 @@ import os
 from falkor.models.ollama_client import OllamaClient, OllamaConnectionError
 from falkor.cli.renderer import FalkorRenderer
 from falkor.cli.interactive import InteractiveMenu
+from falkor.help_agent import HelpAgent
 from falkor import __version__
 
 
@@ -22,6 +23,7 @@ class FalkorApp:
         self.client = OllamaClient()
         self.renderer = FalkorRenderer()
         self.menu = InteractiveMenu()
+        self.help_agent = HelpAgent()
         self.conversation_history = []
         self.current_dir = os.getcwd()
 
@@ -75,35 +77,88 @@ class FalkorApp:
                         self._switch_model(selected, models)
                     continue
                 
+                if user_input.lower().startswith("/help-agent"):
+                    # Force help agent mode
+                    question = user_input[len("/help-agent"):].strip()
+                    if not question:
+                        self.renderer.print("\n[cyan]💡 Help Agent - Ask me about Falkor![/cyan]\n")
+                        self.renderer.print("[dim]Examples:[/dim]")
+                        self.renderer.print("  - /help-agent how do I get more models?")
+                        self.renderer.print("  - /help-agent why is it slow?")
+                        self.renderer.print("  - /help-agent what models should I use?\n")
+                        continue
+                    
+                    # Show help agent indicator
+                    self.renderer.print("\n[dim italic]💡 Help Agent activated[/dim italic]\n")
+                    
+                    # Get help agent response
+                    messages = self.help_agent.get_help_message(
+                        question,
+                        self.conversation_history
+                    )
+                    
+                    stream = self.client.chat_stream(
+                        model=self.model,
+                        messages=messages
+                    )
+                    
+                    self.renderer.render_streaming_response(stream)
+                    self.renderer.print()  # Add newline
+                    continue
+                
                 # Check for exit command
                 if user_input.lower() in ["exit", "quit", "bye"]:
                     self.renderer.print("\n[yellow]👋 Goodbye! Thanks for chatting with Falkor![/yellow]\n")
                     break
                 
-                # Add to conversation history
-                self.conversation_history.append({
-                    "role": "user",
-                    "content": user_input
-                })
+                # Check if help agent should activate
+                use_help_agent = self.help_agent.should_activate(user_input)
+                
+                if use_help_agent:
+                    # Show help agent indicator
+                    self.renderer.print("\n[dim italic]💡 Help Agent activated[/dim italic]\n")
+                    
+                    # Get help agent messages (includes system prompt)
+                    messages = self.help_agent.get_help_message(
+                        user_input,
+                        self.conversation_history
+                    )
+                else:
+                    # Add to conversation history (normal mode)
+                    self.conversation_history.append({
+                        "role": "user",
+                        "content": user_input
+                    })
+                    messages = self.conversation_history
                 
                 # Get streaming response from Ollama
                 stream = self.client.chat_stream(
                     model=self.model,
-                    messages=self.conversation_history
+                    messages=messages
                 )
                 
                 # Render with typewriter effect!
                 assistant_message = self.renderer.render_streaming_response(stream)
                 
-                # Add response to history
-                self.conversation_history.append({
-                    "role": "assistant",
-                    "content": assistant_message
-                })
+                # Only add to conversation history if NOT using help agent
+                # (Help agent responses are one-off, don't pollute conversation)
+                if not use_help_agent:
+                    # Add to conversation history
+                    self.conversation_history.append({
+                        "role": "user",
+                        "content": user_input
+                    })
                 
-                # Trim history if too long (keep last max_history messages)
-                if len(self.conversation_history) > self.max_history:
-                    self.conversation_history = self.conversation_history[-self.max_history:]
+                # Add response to history (only if not help agent)
+                if not use_help_agent:
+                    self.conversation_history.append({
+                        "role": "assistant",
+                        "content": assistant_message
+                    })
+                    
+                    # Trim history if too long (keep last max_history messages)
+                    if len(self.conversation_history) > self.max_history:
+                        self.conversation_history = self.conversation_history[-self.max_history:]
                 
             except KeyboardInterrupt:
                 self.renderer.print("\n\n[yellow]👋 Goodbye! (Interrupted)[/yellow]")
