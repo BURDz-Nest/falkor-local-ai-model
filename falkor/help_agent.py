@@ -10,16 +10,21 @@ class HelpAgent:
         """Initialize the help agent."""
         self.system_prompt = self._build_system_prompt()
         self.help_keywords = [
-            "how do i", "how to", "how can i",
+            # Model management
             "install model", "get model", "add model", "download model",
-            "pull model", "more models", "new model",
-            "switch model", "change model",
+            "pull model", "more models", "new model", "available models",
+            "switch model", "change model", "list models",
+            
+            # Falkor/Ollama specific
+            "how do i get", "how to get", "how do i install", "how to install",
+            "how do i add", "how to add", "how do i use",
+            "use ollama", "run ollama", "ollama command",
+            "falkor command", "falkor help",
+            
+            # Troubleshooting
             "not working", "doesn't work", "not responding",
-            "error", "failed", "can't connect",
-            "ollama", "falkor",
-            "what is", "what are", "explain",
-            "help me", "i need help",
-            "slow", "stuck", "frozen",
+            "won't start", "can't start", "error", "failed", "can't connect",
+            "connection", "slow", "stuck", "frozen",
         ]
     
     def should_activate(self, user_input: str) -> bool:
@@ -33,14 +38,18 @@ class HelpAgent:
         """
         user_lower = user_input.lower()
         
+        # Don't activate on commands (let normal handler take it)
+        if user_lower.startswith("/"):
+            return False
+        
+        # Check for explicit Falkor/Ollama mentions
+        if "ollama" in user_lower or "falkor" in user_lower:
+            return True
+        
         # Check for help keywords
         for keyword in self.help_keywords:
             if keyword in user_lower:
                 return True
-        
-        # Check for questions about Falkor commands
-        if user_lower.startswith("/"):
-            return False  # Let normal command handler take it
         
         return False
     
@@ -65,33 +74,37 @@ class HelpAgent:
 ### Getting More Models:
 When users ask about adding/getting/installing models:
 
-1. **List available models:**
+1. **Browse available models:**
+   - Visit: https://ollama.com/library
+   - Or check what's installed: `ollama list`
+
+2. **Pull any model:**
+   ```
+   ollama pull <model-name>
+   ```
+   Example: `ollama pull llama3.1:8b`
+
+3. **Verify it worked:**
    ```
    ollama list
    ```
+   Your new model should appear in the list!
 
-2. **Pull a new model:**
-   ```
-   ollama pull llama3.1:8b
-   ollama pull qwen2.5-coder:32b
-   ollama pull mistral:7b
-   ```
+4. **Use it in Falkor:**
+   - Restart Falkor: `exit` then `falkor`
+   - Switch models: Type `/model`, use ↑↓ arrows, press Enter
 
-3. **After pulling, restart Falkor:**
-   - Type: `exit`
-   - Then: `falkor`
+**Hardware Considerations:**
+- Small models (1-3b parameters): ~2-4GB RAM
+- Medium models (7-8b): ~8GB RAM minimum
+- Large models (30b+): ~20-32GB RAM required
+- If your machine struggles (slow/freezing), use a smaller model
+- Rule of thumb: Model size in GB ≈ RAM needed
 
-4. **Switch models in Falkor:**
-   - Type: `/model`
-   - Use arrow keys ↑↓
-   - Press Enter
-
-### Popular Models:
-- **qwen2.5:1.5b** (700MB) - Fast, lightweight (DEFAULT)
-- **llama3.1:8b** (4.7GB) - Great all-around (RECOMMENDED)
-- **qwen2.5-coder:32b** (19GB) - Best for coding
-- **qwen2.5:7b** (4.7GB) - Balanced
-- **mistral:7b** (4.1GB) - Excellent for instructions
+**Finding the Right Model:**
+- Check ollama.com/library for the full catalog
+- Model names follow format: `name:size` (e.g., `llama3.1:8b`)
+- Larger parameter counts = better quality but slower & more RAM
 
 ### Troubleshooting:
 
@@ -108,13 +121,18 @@ ollama list
 # Pull the model first:
 ollama pull <model-name>
 
+# Check it's installed:
+ollama list
+
 # Then restart Falkor
 ```
 
-**"Slow responses":**
-- Use a smaller model: `ollama pull qwen2.5:1.5b`
-- Close other applications
-- Check RAM usage
+**"Slow responses" or "System freezing":**
+- Your model might be too large for your hardware
+- Check RAM usage - if near 100%, model is too big
+- Solution: Pull a smaller model (fewer parameters)
+- Close other applications to free RAM
+- Generally: Use models where size (GB) ≤ available RAM
 
 **"Command not found: falkor":**
 ```bash
