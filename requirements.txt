@@ -1,0 +1,16 @@
+# Falkor - Python Dependencies
+
+# Terminal UI and rich text rendering
+rich>=13.7.0
+
+# HTTP client for Ollama API
+httpx>=0.27.0
+
+# Interactive prompts and menus
+prompt-toolkit>=3.0.0
+
+# Data validation (for future features)
+pydantic>=2.0.0
+
+# YAML config files (for future features)
+PyYAML>=6.0.0
