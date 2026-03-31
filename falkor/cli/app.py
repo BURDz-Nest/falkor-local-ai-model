@@ -47,9 +47,10 @@ class FalkorApp:
         # Main chat loop
         while True:
             try:
-                # Get user input with enhanced prompt showing model + directory
-                prompt_text = self._get_prompt()
-                user_input = self.renderer.console.input(prompt_text).strip()
+                # Show enhanced prompt with model + directory
+                self._show_prompt()
+                # Get user input (console.input doesn't support Rich markup, so we use plain input)
+                user_input = input().strip()
                 
                 if not user_input:
                     continue
@@ -118,12 +119,8 @@ class FalkorApp:
         # Cleanup
         self.client.close()
 
-    def _get_prompt(self) -> str:
-        """Generate enhanced prompt with model and directory.
-        
-        Returns:
-            Formatted prompt string
-        """
+    def _show_prompt(self):
+        """Display enhanced prompt with model and directory."""
         # Update current directory (in case it changed)
         self.current_dir = os.getcwd()
         
@@ -138,8 +135,20 @@ class FalkorApp:
         if len(display_dir) > 40:
             display_dir = "..." + display_dir[-37:]
         
-        # Format: [model] (directory) You:
-        return f"\n[bold magenta][{self.model}][/bold magenta] [dim]({display_dir})[/dim]\n[bold cyan]You:[/bold cyan] "
+        # Print formatted prompt: [model] (directory)
+        from rich.text import Text
+        
+        self.renderer.console.print()
+        
+        # Build prompt using Text object for proper escaping
+        prompt_line = Text()
+        prompt_line.append("[", style="bold magenta")
+        prompt_line.append(self.model, style="bold magenta")
+        prompt_line.append("] ", style="bold magenta")
+        prompt_line.append(f"({display_dir})", style="dim")
+        
+        self.renderer.console.print(prompt_line)
+        self.renderer.console.print("[bold cyan]You:[/bold cyan] ", end="")
 
     def _switch_model(self, new_model: str, models: list):
         """Switch to a different model.
