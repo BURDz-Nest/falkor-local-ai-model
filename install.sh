@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 REQUIRED_PYTHON_VERSION="3.11"
-DEFAULT_MODEL="qwen2.5:1.5b"
+DEFAULT_MODEL="gemma2:2b"
 INSTALL_DIR="$HOME/.falkor"
 BIN_DIR="$HOME/bin"
 
@@ -198,7 +198,7 @@ install_dependencies() {
 
 # Pull default model
 pull_default_model() {
-    print_info "Pulling default model: $DEFAULT_MODEL (~700MB)..."
+    print_info "Pulling default model: $DEFAULT_MODEL (~1.6GB)..."
     print_warning "This may take a few minutes depending on your connection"
     
     # Determine Ollama command

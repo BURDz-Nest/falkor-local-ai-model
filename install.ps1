@@ -6,7 +6,7 @@
 
 # Configuration
 $REQUIRED_PYTHON_VERSION = "3.11"
-$DEFAULT_MODEL = "qwen2.5:1.5b"
+$DEFAULT_MODEL = "gemma2:2b"
 $INSTALL_DIR = "$env:USERPROFILE\.falkor"
 $SCRIPTS_DIR = "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps"
 
@@ -206,7 +206,7 @@ function Install-Dependencies {
 
 # Pull default model
 function Install-DefaultModel {
-    Write-Info "Pulling default model: $DEFAULT_MODEL (~700MB)..."
+    Write-Info "Pulling default model: $DEFAULT_MODEL (~1.6GB)..."
     Write-Warning-Custom "This may take a few minutes depending on your connection"
     
     try {
@@ -327,7 +327,7 @@ function Main {
     Write-Host ""
     
     # Pull default model
-    $downloadModel = Read-Host "Download default model ($DEFAULT_MODEL ~700MB)? (Y/n)"
+    $downloadModel = Read-Host "Download default model ($DEFAULT_MODEL ~1.6GB)? (Y/n)"
     if ($downloadModel -ne 'n' -and $downloadModel -ne 'N') {
         Install-DefaultModel
     } else {

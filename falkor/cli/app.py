@@ -11,7 +11,7 @@ from falkor import __version__
 class FalkorApp:
     """Main Falkor CLI application."""
 
-    def __init__(self, model: str = "llama3.1:8b", max_history: int = 20):
+    def __init__(self, model: str = "gemma2:2b", max_history: int = 20):
         """Initialize Falkor app.
         
         Args:

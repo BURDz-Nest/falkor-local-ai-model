@@ -11,7 +11,7 @@
 If you used the installer, you already have:
 
 ```
-qwen2.5:1.5b (~700MB)
+gemma2:2b (~1.6GB)
 ```
 
 **Fast, lightweight, perfect for getting started!**
@@ -58,15 +58,17 @@ Done! You're now using the new model!
 
 ### For Beginners (Fast & Small)
 
-#### qwen2.5:1.5b (700MB) ⭐ DEFAULT
+#### gemma2:2b (1.6GB) ⭐ DEFAULT
 ```bash
-ollama pull qwen2.5:1.5b
+ollama pull gemma2:2b
 ```
-- ✅ Super fast responses
-- ✅ Small download
-- ✅ Good for quick tasks
-- ✅ Low RAM usage (~2GB)
-- ⚠️ Not as smart as larger models
+- ✅ Fast responses (optimized quantization)
+- ✅ Quick download (~2 minutes)
+- ✅ Great quality for size (better than 1.5b models)
+- ✅ Follows instructions well (good Help Agent responses)
+- ✅ Moderate RAM (~4GB)
+- 👍 **Best starting point** - fast enough, smart enough
+- ⚠️ Not as capable as 7b+ models for complex tasks
 
 ---
 
@@ -134,7 +136,8 @@ ollama pull mistral:7b
 
 | Model | Size | RAM | Speed | Quality | Best For |
 |-------|------|-----|-------|---------|----------|
-| **qwen2.5:1.5b** | 700MB | 2GB | ⚡⚡⚡ | ⭐⭐ | Quick tasks |
+| **gemma2:2b** | 1.6GB | 4GB | ⚡⚡⚡ | ⭐⭐⭐ | Default, balanced |
+| **qwen2.5:1.5b** | 700MB | 2GB | ⚡⚡⚡ | ⭐⭐ | Ultra-fast tasks |
 | **llama3.1:8b** | 4.7GB | 8GB | ⚡⚡ | ⭐⭐⭐⭐ | General use |
 | **qwen2.5:7b** | 4.7GB | 8GB | ⚡⚡ | ⭐⭐⭐⭐ | Conversations |
 | **qwen2.5-coder:7b** | 4.7GB | 8GB | ⚡⚡ | ⭐⭐⭐⭐ | Coding |

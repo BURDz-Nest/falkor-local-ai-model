@@ -19,7 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/ma
 2. ✅ Installs Ollama (if needed)
 3. ✅ Downloads Falkor
 4. ✅ Installs dependencies
-5. ✅ Pulls default model (qwen2.5:1.5b ~700MB)
+5. ✅ Pulls default model (gemma2:2b ~1.6GB)
 6. ✅ Sets up `falkor` command
 
 **Time**: 5-10 minutes
@@ -160,7 +160,7 @@ $INSTALL_DIR = "C:\path\to\custom\location"
 
 When prompted:
 ```
-Download default model (qwen2.5:1.5b ~700MB)? (Y/n)
+Download default model (gemma2:2b ~1.6GB)? (Y/n)
 ```
 
 Press `n` to skip. Download later:
@@ -204,7 +204,7 @@ pip install -r requirements.txt
 
 ### Ollama Models
 
-- `qwen2.5:1.5b` (~700MB) - Default model
+- `gemma2:2b` (~1.6GB) - Default model (Google, great quality)
 - Additional models optional (see README)
 
 ---
@@ -214,7 +214,7 @@ pip install -r requirements.txt
 ### Default Settings
 
 - **Installation**: `~/.falkor`
-- **Default model**: `qwen2.5:1.5b`
+- **Default model**: `gemma2:2b`
 - **Max history**: 20 messages
 - **Ollama URL**: `http://localhost:11434`
 
@@ -442,7 +442,7 @@ falkor --update  # Coming in v0.2.0
 - Falkor code: ~1MB
 - Python packages: ~50MB
 - Ollama: ~500MB
-- Default model (qwen2.5:1.5b): ~700MB
+- Default model (gemma2:2b): ~1.6GB
 
 **Total**: ~1.25GB
 

@@ -67,7 +67,7 @@ cd falkor-local-ai-model
 
 - **Python 3.11+** (installer checks/prompts)
 - **Ollama** (installer installs if needed)
-- **Default model** `qwen2.5:1.5b` (~700MB, installer downloads)
+- **Default model** `gemma2:2b` (~1.6GB, installer downloads)
 
 ### Manual Requirements
 
@@ -113,7 +113,7 @@ You'll see:
 ║         >> Your Local Knowledge Assistant <<         ║
 ╚═══════════════════════════════════════════════════════╝
 
-[qwen2.5:1.5b] (~/projects)
+[gemma2:2b] (~/projects)
 You: _
 ```
 
@@ -135,11 +135,11 @@ Type `/model` to see:
 =============== Model Selection ===============
 
   Select a model to use
-  Current model: qwen2.5:1.5b
+  Current model: gemma2:2b
 
 ================================================
 
-  ✓ qwen2.5:1.5b (current)
+  ✓ gemma2:2b (current)
     llama3.1:8b
     qwen2.5-coder:32b
 
