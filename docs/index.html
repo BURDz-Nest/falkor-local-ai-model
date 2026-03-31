@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falkor - Local AI Assistant</title>
+    <meta name="description" content="Beautiful local AI assistant powered by Ollama. ChatGPT-like experience on your machine.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* Cyberpunk Neo Tokyo Colors */
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151937;
+            --bg-elevated: #1e2449;
+            --text-primary: #e0e6ff;
+            --text-secondary: #a8b2d1;
+            --text-muted: #6b7794;
+            --neon-cyan: #00d9ff;
+            --neon-pink: #ff0080;
+            --neon-purple: #b300ff;
+            --neon-green: #00ff88;
+            --border-color: #2a3458;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 217, 255, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+        }
+        
+        /* Side Navigation */
+        nav {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 80px);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style: none;
+        }
+        
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+        
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border-left: 2px solid transparent;
+        }
+        
+        nav a:hover {
+            background: var(--bg-elevated);
+            color: var(--neon-cyan);
+            border-left-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+        }
+        
+        nav a.active {
+            background: var(--bg-elevated);
+            color: var(--neon-cyan);
+            border-left-color: var(--neon-cyan);
+        }
+        
+        /* Main Content */
+        main {
+            margin-left: 280px;
+            margin-top: 80px;
+            padding: 3rem;
+            max-width: 900px;
+        }
+        
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 100px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(0, 217, 255, 0.3);
+        }
+        
+        h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--neon-cyan);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-cyan), transparent);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--neon-pink);
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        /* Code blocks */
+        pre {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+                        0 0 30px rgba(0, 217, 255, 0.1) inset;
+        }
+        
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--neon-green);
+        }
+        
+        /* Inline code */
+        p code, li code {
+            background: var(--bg-elevated);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--neon-cyan);
+            font-size: 0.9em;
+        }
+        
+        /* Lists */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 217, 255, 0.2);
+        }
+        
+        /* Install command highlight */
+        .install-command {
+            background: linear-gradient(135deg, var(--bg-elevated), var(--bg-secondary));
+            border: 2px solid var(--neon-cyan);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .install-command::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            to { left: 100%; }
+        }
+        
+        .install-command h3 {
+            margin-top: 0;
+            font-size: 1.2rem;
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            color: var(--bg-primary);
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 217, 255, 0.5);
+        }
+        
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background: var(--bg-elevated);
+            color: var(--neon-cyan);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: var(--bg-elevated);
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .badge-default {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            color: var(--bg-primary);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+        }
+        
+        .badge-new {
+            background: var(--neon-green);
+            color: var(--bg-primary);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        
+        /* Mobile */
+        @media (max-width: 768px) {
+            nav {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            nav.open {
+                transform: translateX(0);
+            }
+            
+            main {
+                margin-left: 0;
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Emoji styling */
+        .emoji {
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo"><span class="emoji">🐉</span> FALKOR</div>
+        </div>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#what-is-falkor" class="active">What is Falkor?</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#getting-started">Getting Started</a></li>
+            <li><a href="#default-model">Default Model</a></li>
+            <li><a href="#more-models">Getting More Models</a></li>
+            <li><a href="#help-agent">Help Agent</a></li>
+            <li><a href="#custom-models">Custom Models</a></li>
+            <li><a href="#commands">Commands</a></li>
+            <li><a href="#tips">Tips & Best Practices</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <section id="what-is-falkor">
+            <h1><span class="emoji">🐉</span> Falkor</h1>
+            <p style="font-size: 1.2rem; color: var(--text-primary);">Beautiful local AI assistant powered by Ollama</p>
+            
+            <div class="card">
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>ChatGPT-like streaming responses</strong> - Smooth typewriter effect</li>
+                    <li><strong>100% local</strong> - Complete privacy, works offline</li>
+                    <li><strong>Interactive model selector</strong> - Switch models with arrow keys</li>
+                    <li><strong>Built-in Help Agent</strong> - Auto-helps with Falkor/Ollama questions</li>
+                    <li><strong>Cross-platform</strong> - macOS, Linux, Windows</li>
+                    <li><strong>Easy installation</strong> - One command to get started</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="installation">
+            <h2>Installation</h2>
+            
+            <div class="install-command">
+                <h3><span class="emoji">🍎</span> macOS / Linux</h3>
+                <pre><code>curl -fsSL https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/main/install.sh | bash</code></pre>
+            </div>
+            
+            <div class="install-command">
+                <h3><span class="emoji">🪟</span> Windows (PowerShell)</h3>
+                <pre><code>irm https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/main/install.ps1 | iex</code></pre>
+            </div>
+            
+            <p><strong>What it does:</strong></p>
+            <ul>
+                <li>Checks for Python 3.11+</li>
+                <li>Installs/checks Ollama</li>
+                <li>Downloads default model (gemma2:2b ~1.6GB)</li>
+                <li>Creates <code>falkor</code> command</li>
+                <li>Takes 5-10 minutes depending on connection</li>
+            </ul>
+        </section>
+        
+        <section id="getting-started">
+            <h2>Getting Started</h2>
+            
+            <p>After installation, just type:</p>
+            <pre><code>falkor</code></pre>
+            
+            <p>You'll see:</p>
+            <pre><code>🐉 Welcome to Falkor!
+Model: gemma2:2b
+
+You: </code></pre>
+            
+            <p>Start chatting! Try:</p>
+            <ul>
+                <li>"What is Python?"</li>
+                <li>"Explain recursion"</li>
+                <li>"Write a function to reverse a string"</li>
+                <li>"how do i get more models?" (triggers Help Agent!)</li>
+            </ul>
+        </section>
+        
+        <section id="default-model">
+            <h2>Default Model <span class="badge badge-default">gemma2:2b</span></h2>
+            
+            <p>Falkor starts with <strong>gemma2:2b</strong> - the perfect balance of speed and quality.</p>
+            
+            <div class="card">
+                <h3>Why gemma2:2b?</h3>
+                <ul>
+                    <li><strong>Fast</strong> - Quick responses (~50-80 tokens/sec)</li>
+                    <li><strong>Smart</strong> - Better quality than 1.5b models</li>
+                    <li><strong>Small download</strong> - Only 1.6GB</li>
+                    <li><strong>Low RAM</strong> - Works with 4GB RAM</li>
+                    <li><strong>Great Help Agent</strong> - Follows instructions well</li>
+                </ul>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Spec</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Size</td>
+                        <td>1.6 GB</td>
+                    </tr>
+                    <tr>
+                        <td>RAM Required</td>
+                        <td>~4 GB</td>
+                    </tr>
+                    <tr>
+                        <td>Speed</td>
+                        <td><span class="emoji">⚡⚡⚡</span> Very Fast</td>
+                    </tr>
+                    <tr>
+                        <td>Quality</td>
+                        <td><span class="emoji">⭐⭐⭐</span> Good</td>
+                    </tr>
+                    <tr>
+                        <td>Best For</td>
+                        <td>Daily use, quick tasks, learning</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section id="more-models">
+            <h2>Getting More Models</h2>
+            
+            <h3>1. Browse Available Models</h3>
+            <p>Visit <a href="https://ollama.com/library" target="_blank" style="color: var(--neon-cyan);">ollama.com/library</a> or check what's installed:</p>
+            <pre><code>ollama list</code></pre>
+            
+            <h3>2. Pull Any Model</h3>
+            <pre><code>ollama pull &lt;model-name&gt;</code></pre>
+            
+            <p>Examples:</p>
+            <pre><code># Great all-around (4.7GB, 8GB RAM)
+ollama pull llama3.1:8b
+
+# Best for coding (19GB, 20GB RAM)
+ollama pull qwen2.5-coder:32b
+
+# Fast and tiny (700MB, 2GB RAM)
+ollama pull qwen2.5:1.5b
+
+# Excellent for instructions (4.1GB, 8GB RAM)
+ollama pull mistral:7b</code></pre>
+            
+            <h3>3. Verify It Worked</h3>
+            <pre><code>ollama list</code></pre>
+            <p>Your new model should appear!</p>
+            
+            <h3>4. Use in Falkor</h3>
+            <ol>
+                <li>Restart Falkor: <code>exit</code> then <code>falkor</code></li>
+                <li>Type: <code>/model</code></li>
+                <li>Use <span class="emoji">↑↓</span> arrow keys to select</li>
+                <li>Press Enter</li>
+            </ol>
+            
+            <div class="card" style="background: var(--bg-elevated); border-color: var(--neon-pink);">
+                <h3><span class="emoji">⚠️</span> Hardware Considerations</h3>
+                <ul>
+                    <li><strong>Small models (1-3b)</strong> - ~2-4GB RAM</li>
+                    <li><strong>Medium models (7-8b)</strong> - ~8GB RAM minimum</li>
+                    <li><strong>Large models (30b+)</strong> - ~20-32GB RAM required</li>
+                    <li><strong>Rule of thumb:</strong> Model size in GB ≈ RAM needed</li>
+                    <li><strong>If struggling:</strong> Use a smaller model!</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="help-agent">
+            <h2>Help Agent <span class="badge badge-new">NEW</span></h2>
+            
+            <p>Falkor includes a <strong>built-in assistant</strong> that knows how Falkor and Ollama work!</p>
+            
+            <h3>Auto-Activation</h3>
+            <p>Help Agent automatically activates when you ask questions about Falkor/Ollama:</p>
+            
+            <pre><code>You: how do i get more models?
+
+💡 Help Agent activated
+
+Falkor: Great question! To get more models:
+
+1. Pull any model:
+   ollama pull &lt;model-name&gt;
+   
+2. Verify it worked:
+   ollama list
+   
+3. Use in Falkor:
+   - Type: exit
+   - Then: falkor
+   - Switch: /model
+
+Check https://ollama.com/library for options!</code></pre>
+            
+            <h3>Triggers</h3>
+            <p>Help Agent activates on questions about:</p>
+            <ul>
+                <li>Getting/installing/switching models</li>
+                <li>Ollama commands</li>
+                <li>Falkor features</li>
+                <li>Troubleshooting</li>
+                <li>Performance issues</li>
+            </ul>
+            
+            <h3>Manual Mode</h3>
+            <pre><code>/help-agent &lt;your question&gt;</code></pre>
+            
+            <p>Examples:</p>
+            <pre><code>/help-agent what models should I use for coding?
+/help-agent why is it slow?
+/help-agent how do I use custom models?</code></pre>
+        </section>
+        
+        <section id="custom-models">
+            <h2>Custom Models (Advanced)</h2>
+            
+            <p>You can use models from HuggingFace or create custom configurations!</p>
+            
+            <h3>Import GGUF from HuggingFace</h3>
+            <ol>
+                <li>Download a GGUF file from HuggingFace</li>
+                <li>Create a Modelfile:
+                    <pre><code>FROM ./path/to/model.gguf</code></pre>
+                </li>
+                <li>Create in Ollama:
+                    <pre><code>ollama create my-custom-model -f Modelfile</code></pre>
+                </li>
+                <li>Verify: <code>ollama list</code></li>
+                <li>Use in Falkor: Restart and <code>/model</code></li>
+            </ol>
+            
+            <p>For more details, ask the Help Agent: <code>/help-agent how do I use custom models?</code></p>
+        </section>
+        
+        <section id="commands">
+            <h2>Commands Reference</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/help</code></td>
+                        <td>Show all commands</td>
+                    </tr>
+                    <tr>
+                        <td><code>/model</code></td>
+                        <td>Interactive model selector (arrow keys)</td>
+                    </tr>
+                    <tr>
+                        <td><code>/help-agent</code></td>
+                        <td>Ask the Help Agent about Falkor/Ollama</td>
+                    </tr>
+                    <tr>
+                        <td><code>/history</code></td>
+                        <td>Show conversation history</td>
+                    </tr>
+                    <tr>
+                        <td><code>/clear</code></td>
+                        <td>Clear the screen</td>
+                    </tr>
+                    <tr>
+                        <td><code>exit</code> / <code>quit</code></td>
+                        <td>Exit Falkor</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section id="tips">
+            <h2>Tips & Best Practices</h2>
+            
+            <div class="card">
+                <h3><span class="emoji">💡</span> Getting the Best Experience</h3>
+                <ul>
+                    <li><strong>Start with gemma2:2b</strong> - Great default, upgrade later if needed</li>
+                    <li><strong>Match model to hardware</strong> - Model size ≈ RAM needed</li>
+                    <li><strong>Use Help Agent</strong> - Just ask "how do i..." questions</li>
+                    <li><strong>Try different models</strong> - Each excels at different tasks</li>
+                    <li><strong>Browse ollama.com/library</strong> - Discover new models</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3><span class="emoji">🚀</span> Performance Tips</h3>
+                <ul>
+                    <li><strong>If responses are slow:</strong> Use a smaller model (qwen2.5:1.5b)</li>
+                    <li><strong>If system freezes:</strong> Model is too big for your RAM</li>
+                    <li><strong>Close other apps:</strong> Free up RAM for better performance</li>
+                    <li><strong>SSD vs HDD:</strong> Models load faster from SSD</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3><span class="emoji">📚</span> Model Recommendations</h3>
+                <ul>
+                    <li><strong>Daily use:</strong> gemma2:2b or llama3.1:8b</li>
+                    <li><strong>Coding:</strong> qwen2.5-coder:7b or qwen2.5-coder:32b</li>
+                    <li><strong>Conversations:</strong> llama3.1:8b or qwen2.5:7b</li>
+                    <li><strong>Instructions:</strong> mistral:7b</li>
+                    <li><strong>Low RAM:</strong> qwen2.5:1.5b</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section>
+            <h2>Links</h2>
+            <ul style="font-size: 1.1rem;">
+                <li><a href="https://github.com/BURDz-Nest/falkor-local-ai-model" target="_blank" style="color: var(--neon-cyan);">GitHub Repository</a></li>
+                <li><a href="https://ollama.com/library" target="_blank" style="color: var(--neon-cyan);">Ollama Model Library</a></li>
+                <li><a href="https://github.com/BURDz-Nest/falkor-local-ai-model/blob/main/INSTALLATION.md" target="_blank" style="color: var(--neon-cyan);">Installation Guide</a></li>
+                <li><a href="https://github.com/BURDz-Nest/falkor-local-ai-model/blob/main/MODELS.md" target="_blank" style="color: var(--neon-cyan);">Models Guide</a></li>
+            </ul>
+        </section>
+        
+        <div style="text-align: center; margin: 4rem 0; padding: 2rem; opacity: 0.7;">
+            <p style="color: var(--text-muted);">Made with <span style="color: var(--neon-pink);">❤️</span> for local AI</p>
+        </div>
+    </main>
+    
+    <script>
+        // Active nav link on scroll
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('nav a');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
