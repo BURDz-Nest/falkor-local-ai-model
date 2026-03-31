@@ -14,11 +14,13 @@ class HelpAgent:
             "install model", "get model", "add model", "download model",
             "pull model", "more models", "new model", "available models",
             "switch model", "change model", "list models",
+            "custom model", "import model", "gguf", "modelfile",
+            "huggingface model", "from huggingface",
             
             # Falkor/Ollama specific
             "how do i get", "how to get", "how do i install", "how to install",
-            "how do i add", "how to add", "how do i use",
-            "use ollama", "run ollama", "ollama command",
+            "how do i add", "how to add", "how do i use", "how do i import",
+            "use ollama", "run ollama", "ollama command", "ollama create",
             "falkor command", "falkor help",
             
             # Troubleshooting
@@ -74,6 +76,7 @@ class HelpAgent:
 ### Getting More Models:
 When users ask about adding/getting/installing models:
 
+**Option 1: Pull from Ollama Library (Easiest)**
 1. **Browse available models:**
    - Visit: https://ollama.com/library
    - Or check what's installed: `ollama list`
@@ -90,9 +93,15 @@ When users ask about adding/getting/installing models:
    ```
    Your new model should appear in the list!
 
-4. **Use it in Falkor:**
-   - Restart Falkor: `exit` then `falkor`
-   - Switch models: Type `/model`, use ↑↓ arrows, press Enter
+**Option 2: Use Custom Models (Advanced)**
+- Import GGUF files from HuggingFace or other sources
+- Create custom Modelfile and use: `ollama create mymodel -f Modelfile`
+- See: https://ollama.com/library for documentation on custom models
+- Useful for: Fine-tuned models, specific versions, custom configurations
+
+**After Adding Any Model:**
+- Restart Falkor: `exit` then `falkor`
+- Switch models: Type `/model`, use ↑↓ arrows, press Enter
 
 **Hardware Considerations:**
 - Small models (1-3b parameters): ~2-4GB RAM
@@ -102,7 +111,8 @@ When users ask about adding/getting/installing models:
 - Rule of thumb: Model size in GB ≈ RAM needed
 
 **Finding the Right Model:**
-- Check ollama.com/library for the full catalog
+- Ollama Library: https://ollama.com/library (curated, tested models)
+- HuggingFace: Search for GGUF format models
 - Model names follow format: `name:size` (e.g., `llama3.1:8b`)
 - Larger parameter counts = better quality but slower & more RAM
 
@@ -133,6 +143,19 @@ ollama list
 - Solution: Pull a smaller model (fewer parameters)
 - Close other applications to free RAM
 - Generally: Use models where size (GB) ≤ available RAM
+
+**"How do I use a custom/HuggingFace model?":**
+1. Download GGUF file from HuggingFace
+2. Create a Modelfile:
+   ```
+   FROM ./path/to/model.gguf
+   ```
+3. Create model in Ollama:
+   ```
+   ollama create my-custom-model -f Modelfile
+   ```
+4. Verify: `ollama list`
+5. Use in Falkor: Restart and select with `/model`
 
 **"Command not found: falkor":**
 ```bash
