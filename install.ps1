@@ -1,4 +1,4 @@
-# Falkor Local AI Assistant - Installation Script
+# Falkor Local AI Assistant - Full Installer
 # For Windows (PowerShell)
 
 # Requires PowerShell 5.1 or higher
@@ -7,370 +7,176 @@
 # Configuration
 $REQUIRED_PYTHON_VERSION = "3.11"
 $DEFAULT_MODEL = "gemma2:2b"
-$INSTALL_DIR = "$env:USERPROFILE\.falkor"
-$SCRIPTS_DIR = "$env:USERPROFILE\AppData\Local\Microsoft\WindowsApps"
+$REPO_URL = "https://github.com/BURDz-Nest/falkor-local-ai-model.git"
+
+# Allow overriding the install dir for testing
+if ($null -eq $env:FALKOR_TEST_DIR) {
+    $INSTALL_DIR = "$env:USERPROFILE\.falkor"
+} else {
+    $INSTALL_DIR = $env:FALKOR_TEST_DIR
+    Write-Host "[TEST MODE] Installing to: $INSTALL_DIR" -ForegroundColor Yellow
+}
 
 # Color functions
 function Write-Header {
     Write-Host ""
-    Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Blue
-    Write-Host "  🐉 Falkor Local AI Assistant - Installer" -ForegroundColor Blue
-    Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Blue
+    Write-Host "=======================================================" -ForegroundColor Blue
+    Write-Host "   Falkor Local AI Assistant - Installer" -ForegroundColor Blue
+    Write-Host "=======================================================" -ForegroundColor Blue
     Write-Host ""
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "✓ $Message" -ForegroundColor Green
+    Write-Host "[OK] $Message" -ForegroundColor Green
 }
 
 function Write-Error-Custom {
     param([string]$Message)
-    Write-Host "✗ $Message" -ForegroundColor Red
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "ℹ $Message" -ForegroundColor Cyan
+    Write-Host "[INFO] $Message" -ForegroundColor Cyan
 }
 
 function Write-Warning-Custom {
     param([string]$Message)
-    Write-Host "⚠ $Message" -ForegroundColor Yellow
+    Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
 # Check if command exists
-function Test-Command {
-    param([string]$Command)
-    $null -ne (Get-Command $Command -ErrorAction SilentlyContinue)
-}
-
-# Compare versions
-function Test-VersionGreaterOrEqual {
-    param(
-        [string]$Version,
-        [string]$RequiredVersion
-    )
-    
-    [version]$v1 = $Version
-    [version]$v2 = $RequiredVersion
-    
-    return $v1 -ge $v2
+function Test-Command-Exists {
+    param([string]$Cmd)
+    return $null -ne (Get-Command $Cmd -ErrorAction SilentlyContinue)
 }
 
 # Check Python installation
-function Test-Python {
+function Check-Python {
     Write-Info "Checking Python installation..."
-    
-    if (Test-Command python) {
-        $pythonVersion = (python --version 2>&1) -replace 'Python ', ''
-        Write-Info "Found Python $pythonVersion"
-        
-        # Extract major.minor version
-        $versionParts = $pythonVersion -split '\.' 
-        $majorMinor = "$($versionParts[0]).$($versionParts[1])"
-        
-        if (Test-VersionGreaterOrEqual -Version $majorMinor -RequiredVersion $REQUIRED_PYTHON_VERSION) {
-            Write-Success "Python version is sufficient (>= $REQUIRED_PYTHON_VERSION)"
-            return $true
-        } else {
-            Write-Error-Custom "Python $REQUIRED_PYTHON_VERSION or higher is required"
-            Write-Info "Current version: $pythonVersion"
-            return $false
-        }
+    if (Test-Command-Exists python) {
+        $version = (python --version 2>&1) -replace 'Python ', ''
+        Write-Success "Found Python $version"
+        return $true
     } else {
-        Write-Error-Custom "Python is not installed or not in PATH"
+        Write-Error-Custom "Python is not installed or not in PATH."
+        Write-Info "Please install Python 3.11+ from https://python.org"
         return $false
-    }
-}
-
-# Install Python instructions
-function Show-PythonInstallInstructions {
-    Write-Warning-Custom "Python $REQUIRED_PYTHON_VERSION or higher is required"
-    Write-Host ""
-    Write-Info "Download Python from:"
-    Write-Host "  https://www.python.org/downloads/" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Info "Make sure to check 'Add Python to PATH' during installation!"
-    Write-Host ""
-    
-    $continue = Read-Host "Continue without Python? (y/N)"
-    if ($continue -ne 'y' -and $continue -ne 'Y') {
-        exit 1
     }
 }
 
 # Check Ollama installation
-function Test-Ollama {
-    Write-Info "Checking Ollama installation..."
-    
-    if (Test-Command ollama) {
-        Write-Success "Ollama found"
+function Check-Ollama {
+    Write-Info "Checking Ollama..."
+    if (Test-Command-Exists ollama) {
+        Write-Success "Ollama is installed."
         return $true
     } else {
-        Write-Warning-Custom "Ollama not found"
+        Write-Warning-Custom "Ollama not found."
+        Write-Info "Falkor requires Ollama to run local models."
+        Write-Info "Download it from: https://ollama.com/download/windows"
         return $false
     }
 }
 
-# Install Ollama
-function Install-Ollama {
-    Write-Info "Installing Ollama for Windows..."
-    Write-Info "Opening Ollama download page..."
+# Clone or Update Falkor
+function Sync-Falkor {
+    Write-Info "Downloading Falkor from GitHub..."
     
-    # Open Ollama website
-    Start-Process "https://ollama.com/download/windows"
-    
-    Write-Host ""
-    Write-Warning-Custom "Please download and install Ollama from the opened browser window"
-    Write-Info "After installation, restart this script."
-    Write-Host ""
-    
-    $continue = Read-Host "Have you installed Ollama? (y/N)"
-    if ($continue -ne 'y' -and $continue -ne 'Y') {
-        Write-Info "Installation cancelled. Please install Ollama and run this script again."
-        exit 1
-    }
-    
-    # Verify installation
-    if (Test-Command ollama) {
-        Write-Success "Ollama installed successfully"
-    } else {
-        Write-Error-Custom "Ollama still not found. Please add it to PATH and restart."
-        exit 1
-    }
-}
-
-# Install Falkor files
-function Install-Falkor {
-    Write-Info "Installing Falkor to $INSTALL_DIR..."
-    
-    # Remove existing installation
     if (Test-Path $INSTALL_DIR) {
-        Write-Warning-Custom "Existing installation found"
-        $remove = Read-Host "Remove and reinstall? (y/N)"
-        
-        if ($remove -eq 'y' -or $remove -eq 'Y') {
-            Remove-Item -Path $INSTALL_DIR -Recurse -Force
-            Write-Success "Removed old installation"
+        Write-Info "Updating existing installation at $INSTALL_DIR..."
+        if (Test-Path "$INSTALL_DIR\.git") {
+            Push-Location $INSTALL_DIR
+            git pull origin main
+            Pop-Location
         } else {
-            Write-Error-Custom "Installation cancelled"
+            Write-Warning-Custom "Non-git directory found at $INSTALL_DIR. Reinstalling..."
+            Remove-Item -Path $INSTALL_DIR -Recurse -Force
+            git clone $REPO_URL $INSTALL_DIR
+        }
+    } else {
+        Write-Info "Cloning repository to $INSTALL_DIR..."
+        if (Test-Command-Exists git) {
+            git clone $REPO_URL $INSTALL_DIR
+        } else {
+            Write-Error-Custom "Git is not installed. Please install Git for Windows."
             exit 1
         }
     }
     
-    # Create installation directory
-    New-Item -ItemType Directory -Path $INSTALL_DIR -Force | Out-Null
-    
-    # Copy files (assuming script is run from repo root)
-    if (Test-Path "falkor") {
-        Write-Info "Copying Falkor files..."
-        Copy-Item -Path "falkor" -Destination $INSTALL_DIR -Recurse -Force
-        Copy-Item -Path "main.py" -Destination $INSTALL_DIR -Force
-        
-        if (Test-Path "requirements.txt") {
-            Copy-Item -Path "requirements.txt" -Destination $INSTALL_DIR -Force
-        } else {
-            # Create minimal requirements.txt
-            @"
-rich>=13.7.0
-httpx>=0.27.0
-prompt-toolkit>=3.0.0
-"@ | Out-File -FilePath "$INSTALL_DIR\requirements.txt" -Encoding UTF8
-        }
-        
-        Write-Success "Files copied"
-    } else {
-        Write-Error-Custom "Falkor files not found. Are you running this from the repository?"
+    if (-not (Test-Path "$INSTALL_DIR\main.py")) {
+        Write-Error-Custom "Failed to download Falkor files."
         exit 1
     }
+    Write-Success "Falkor files ready."
 }
 
 # Install Python dependencies
-function Install-Dependencies {
+function Install-Deps {
     Write-Info "Installing Python dependencies..."
-    
-    Push-Location $INSTALL_DIR
-    
     try {
-        python -m pip install --user -q -r requirements.txt
-        Write-Success "Dependencies installed"
+        python -m pip install --user -q -r "$INSTALL_DIR\requirements.txt"
+        Write-Success "Dependencies installed."
     } catch {
-        Write-Error-Custom "Failed to install dependencies: $_"
-        Pop-Location
-        exit 1
+        Write-Error-Custom "Failed to install dependencies."
     }
-    
-    Pop-Location
 }
 
 # Pull default model
-function Install-DefaultModel {
-    Write-Info "Pulling default model: $DEFAULT_MODEL (~1.6GB)..."
-    Write-Warning-Custom "This may take a few minutes depending on your connection"
-    
-    try {
+function Pull-Model {
+    if (Test-Command-Exists ollama) {
+        Write-Info "Ensuring default model ($DEFAULT_MODEL) is available..."
         ollama pull $DEFAULT_MODEL
-        Write-Success "Model downloaded successfully"
-    } catch {
-        Write-Warning-Custom "Failed to download model. You can do this later with:"
-        Write-Info "  ollama pull $DEFAULT_MODEL"
+        Write-Success "Model ready."
     }
 }
 
 # Setup falkor command
-function Set-FalkorCommand {
+function Setup-Command {
     Write-Info "Setting up 'falkor' command..."
     
-    # Create batch file wrapper
-    $batchContent = @"
-@echo off
-python "$INSTALL_DIR\main.py" %*
-"@
-    
+    $batchContent = "@echo off`r`npython `"$INSTALL_DIR\main.py`" %*"
     $batchPath = "$INSTALL_DIR\falkor.bat"
     $batchContent | Out-File -FilePath $batchPath -Encoding ASCII -Force
     
-    Write-Success "Command script created"
-    
-    # Add to PATH if not already there
     $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-    
     if ($userPath -notlike "*$INSTALL_DIR*") {
-        Write-Info "Adding Falkor to PATH..."
-        [Environment]::SetEnvironmentVariable(
-            "Path",
-            "$userPath;$INSTALL_DIR",
-            "User"
-        )
-        Write-Success "Added to PATH (restart terminal to use 'falkor' command)"
+        [Environment]::SetEnvironmentVariable("Path", "$userPath;$INSTALL_DIR", "User")
+        Write-Success "Added to PATH (Restart terminal to use 'falkor' command)."
     } else {
-        Write-Success "Falkor is already in PATH"
+        Write-Success "Falkor is already in PATH."
     }
-    
-    # Also create PowerShell script
-    $psContent = @"
-# Falkor launcher
-python "$INSTALL_DIR\main.py" `$args
-"@
-    
-    $psPath = "$INSTALL_DIR\falkor.ps1"
-    $psContent | Out-File -FilePath $psPath -Encoding UTF8 -Force
 }
 
-# Create uninstall script
-function New-UninstallScript {
-    $uninstallContent = @'
-# Uninstall Falkor
-
-Write-Host "Uninstalling Falkor..." -ForegroundColor Yellow
-
-# Remove installation
-if (Test-Path "$env:USERPROFILE\.falkor") {
-    Remove-Item -Path "$env:USERPROFILE\.falkor" -Recurse -Force
-    Write-Host "✓ Removed ~/.falkor" -ForegroundColor Green
-}
-
-# Remove from PATH
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($userPath -like "*$env:USERPROFILE\.falkor*") {
-    $newPath = $userPath -replace "[;]?$env:USERPROFILE\\.falkor[;]?", ""
-    [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
-    Write-Host "✓ Removed from PATH" -ForegroundColor Green
-}
-
-Write-Host ""
-Write-Host "Falkor has been uninstalled." -ForegroundColor Green
-Write-Host "Note: Ollama and models were NOT removed."
-Write-Host "To remove Ollama: see https://ollama.com/"
-Write-Host ""
-'@
-    
-    $uninstallPath = "$INSTALL_DIR\uninstall.ps1"
-    $uninstallContent | Out-File -FilePath $uninstallPath -Encoding UTF8 -Force
-    
-    Write-Success "Created uninstall script: $uninstallPath"
-}
-
-# Main installation flow
+# Main function
 function Main {
     Write-Header
     
-    # Check Python
-    if (-not (Test-Python)) {
-        Show-PythonInstallInstructions
-    }
+    if (-not (Check-Python)) { return }
+    Check-Ollama
     
+    Sync-Falkor
+    Install-Deps
+    Pull-Model
+    Setup-Command
+
     Write-Host ""
-    
-    # Check Ollama
-    if (-not (Test-Ollama)) {
-        $install = Read-Host "Install Ollama now? (Y/n)"
-        if ($install -ne 'n' -and $install -ne 'N') {
-            Install-Ollama
-        } else {
-            Write-Warning-Custom "Skipping Ollama installation"
-            Write-Info "You can install it later from: https://ollama.com/"
-        }
-    }
-    
+    Write-Host "=======================================================" -ForegroundColor Green
+    Write-Host "   Falkor installed successfully!" -ForegroundColor Green
+    Write-Host "=======================================================" -ForegroundColor Green
     Write-Host ""
-    
-    # Install Falkor
-    Install-Falkor
-    
-    Write-Host ""
-    
-    # Install dependencies
-    Install-Dependencies
-    
-    Write-Host ""
-    
-    # Pull default model
-    $downloadModel = Read-Host "Download default model ($DEFAULT_MODEL ~1.6GB)? (Y/n)"
-    if ($downloadModel -ne 'n' -and $downloadModel -ne 'N') {
-        Install-DefaultModel
-    } else {
-        Write-Info "Skipping model download. You can pull models later with:"
-        Write-Info "  ollama pull $DEFAULT_MODEL"
-    }
-    
-    Write-Host ""
-    
-    # Setup command
-    Set-FalkorCommand
-    
-    Write-Host ""
-    
-    # Create uninstall script
-    New-UninstallScript
-    
-    # Success message
-    Write-Host ""
-    Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Green
-    Write-Host "  ✓ Falkor installed successfully!" -ForegroundColor Green
-    Write-Host "═══════════════════════════════════════════════════════" -ForegroundColor Green
-    Write-Host ""
-    Write-Info "To start Falkor, open a NEW PowerShell window and type:"
-    Write-Host "  falkor" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Info "Or run directly:"
-    Write-Host "  python $INSTALL_DIR\main.py" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Info "To uninstall:"
-    Write-Host "  $INSTALL_DIR\uninstall.ps1" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Info "Need help? Type '/help' in Falkor or visit:"
-    Write-Host "  https://github.com/BURDz-Nest/falkor-local-ai-model"
+    Write-Info "1. Restart your PowerShell window."
+    Write-Info "2. Type: falkor"
     Write-Host ""
 }
 
-# Run main function
+# Execute
 try {
     Main
 } catch {
     Write-Host ""
-    Write-Error-Custom "Installation failed: $_"
+    Write-Host "[ERROR] Installation failed: $_" -ForegroundColor Red
     Write-Host ""
     exit 1
 }
