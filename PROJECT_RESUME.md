@@ -1,12 +1,33 @@
 # 🐉 Falkor - Complete Project Status
 
-**Last Updated:** 2026-03-17  
-**Status:** Ready to Push to GitHub (Private Repo)  
-**Commits Pending:** 9 commits
+**Last Updated:** 2026-04-01 (Current Session Update)
+**Status:** 🚨 ACTIVE DEVELOPMENT - FEATURE BRANCH
+**Active Branch:** `feature/windows-one-step-installer`
 
 ---
 
-## 📊 Current State - COMPLETE & READY
+## 🚨 IMPORTANT: ACTIVE BRANCH STATUS
+**Current Task:** Implementing a true "one-line" Windows installer that clones the repo and sets up the environment automatically.
+
+### ⚠️ CRITICAL MERGE REQUIREMENT:
+Before merging `feature/windows-one-step-installer` into `main`, you **MUST** update `install.ps1`:
+- **File:** `install.ps1`
+- **Function:** `Sync-Falkor`
+- **Action:** Change the `git clone` line from:
+  `git clone -b feature/windows-one-step-installer $REPO_URL $INSTALL_DIR`
+  **BACK TO:**
+  `git clone $REPO_URL $INSTALL_DIR`
+- **Why:** This ensures that once merged, the installer pulls the production `main` code instead of the experimental branch.
+
+### 🧪 TESTING FOR FRIENDS:
+Share this command for branch-specific testing (clones the feature branch):
+```powershell
+irm https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/feature/windows-one-step-installer/install.ps1 | iex
+```
+
+---
+
+## 📊 Current State - COMPLETE & READY (on Main)
 
 ### ✅ What's Built and Working:
 

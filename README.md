@@ -41,11 +41,19 @@ bash install.sh
 
 ### Windows
 
-**PowerShell installation:**
+**Standard Installation:**
 
 ```powershell
-# Download and run installer
+# Download and run installer from main
 irm https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/main/install.ps1 | iex
+```
+
+**🧪 Test Branch (New One-Step Installer):**
+
+Use this to test the latest Windows installer improvements (clones repo + sets up everything):
+
+```powershell
+irm https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/feature/windows-one-step-installer/install.ps1 | iex
 ```
 
 **Or manual installation:**

@@ -1,8 +1,24 @@
 # 🐉 Falkor Project Status
 
-**Last Updated**: 2026-03-17  
+**Last Updated**: 2026-04-01 (Current Session)
 **Version**: 0.1.0 (with streaming!)  
-**Status**: ✅ Production Ready
+**Status**: 🧪 ACTIVE DEVELOPMENT - FEATURE BRANCH
+
+---
+
+## 🧪 CURRENT WORK: Windows One-Step Installer
+**Branch**: `feature/windows-one-step-installer`
+
+This branch focuses on refining the Windows installation experience into a seamless, one-line command that:
+- [x] Auto-clones the repository.
+- [x] Checks for Python/Ollama prerequisites.
+- [x] Installs dependencies and pulls default models.
+- [x] Sets up the `falkor` command globally.
+
+**Testing Command**:
+```powershell
+irm https://raw.githubusercontent.com/BURDz-Nest/falkor-local-ai-model/feature/windows-one-step-installer/install.ps1 | iex
+```
 
 ---
 
