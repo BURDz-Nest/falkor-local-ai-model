@@ -96,9 +96,9 @@ function Sync-Falkor {
             git clone $REPO_URL $INSTALL_DIR
         }
     } else {
-        Write-Info "Cloning repository to $INSTALL_DIR..."
+        Write-Info "Cloning repository to $INSTALL_DIR (branch: feature/windows-one-step-installer)..."
         if (Test-Command-Exists git) {
-            git clone $REPO_URL $INSTALL_DIR
+            git clone -b feature/windows-one-step-installer $REPO_URL $INSTALL_DIR
         } else {
             Write-Error-Custom "Git is not installed. Please install Git for Windows."
             exit 1
